@@ -1,6 +1,6 @@
-Exeercise  : https://teach-rs.trifectatech.org/exercises/2-foundations-of-rust/4-traits-and-generics/index.html
-GitHub     : https://github.com/trifectatechfoundation/teach-rs
-Run tests  : [from project root] : `cargo test -p local_storage_vec`
+**Exercise**  : https://teach-rs.trifectatech.org/exercises/2-foundations-of-rust/4-traits-and-generics/index.html </br>
+**GitHub**     : https://github.com/trifectatechfoundation/teach-rs </br>
+**Run tests**  : [from project root] : `cargo test -p local_storage_vec` </br>
 
 ## At a High Level
 
