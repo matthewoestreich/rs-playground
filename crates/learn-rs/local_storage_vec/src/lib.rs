@@ -355,19 +355,9 @@ mod tests {
     use crate::LocalStorageVec;
 
     #[test]
-    // Don't remove the #[ignore] attribute or your tests will take forever!
     #[ignore = "This test is just to validate the definition of `LocalStorageVec`. If it compiles, all is OK"]
     #[allow(unreachable_code, unused_variables)]
     fn it_compiles() {
-        // Here's a trick to 'initialize' a type while not actually
-        // creating a value: an infinite `loop` expression diverges
-        // and evaluates to the 'never type' `!`, which, as is can never
-        // actually be instantiated, coerces to any other type.
-        // Some other ways of diverging are by calling the `panic!` or the `todo!`
-        // macros.
-        // More info:
-        // - https://doc.rust-lang.org/rust-by-example/fn/diverging.html
-        // - https://doc.rust-lang.org/reference/expressions/loop-expr.html#infinite-loops
         let vec: LocalStorageVec<u32, 10> = LocalStorageVec::from([3]);
         match vec {
             LocalStorageVec::Stack { buf, len } => {
@@ -380,19 +370,14 @@ mod tests {
         }
     }
 
-    // Uncomment me for part B
     #[test]
     fn it_from_vecs() {
-        // The `vec!` macro creates a `Vec<T>` in a way that resembles
-        // array-initialization syntax.
         let vec: LocalStorageVec<usize, 10> = LocalStorageVec::from(vec![1, 2, 3]);
-        // Assert that the call to `from` indeed yields a `Heap` variant
         assert!(matches!(vec, LocalStorageVec::Heap(_)));
         let vec: LocalStorageVec<usize, 2> = LocalStorageVec::from(vec![1, 2, 3]);
         assert!(matches!(vec, LocalStorageVec::Heap(_)));
     }
 
-    // Uncomment me for part C
     #[test]
     fn it_as_refs() {
         let vec: LocalStorageVec<i32, 256> = LocalStorageVec::from([0; 128]);
@@ -409,15 +394,12 @@ mod tests {
         assert!(slice_mut.len() == 128);
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_constructs() {
         let vec: LocalStorageVec<usize, 10> = LocalStorageVec::new();
-        // Assert that the call to `new` indeed yields a `Stack` variant with zero length
         assert!(matches!(vec, LocalStorageVec::Stack { buf: _, len: 0 }));
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_lens() {
         let vec: LocalStorageVec<_, 3> = LocalStorageVec::from([0, 1, 2]);
@@ -426,7 +408,6 @@ mod tests {
         assert_eq!(vec.len(), 3);
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_pushes() {
         let mut vec: LocalStorageVec<_, 128> = LocalStorageVec::new();
@@ -445,7 +426,6 @@ mod tests {
         )
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_pops() {
         let mut vec: LocalStorageVec<_, 128> = LocalStorageVec::from([0; 128]);
@@ -467,7 +447,6 @@ mod tests {
         assert_eq!(vec.pop(), None);
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_inserts() {
         let mut vec: LocalStorageVec<_, 4> = LocalStorageVec::from([0, 1, 2]);
@@ -494,7 +473,6 @@ mod tests {
         assert_eq!(vec.as_ref(), &[0, 3, 1, 2, 3, 4])
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_removes() {
         let mut vec: LocalStorageVec<_, 4> = LocalStorageVec::from([0, 1, 2]);
@@ -519,7 +497,6 @@ mod tests {
         assert_eq!(elem, 1);
     }
 
-    // Uncomment me for part D
     #[test]
     fn it_clears() {
         let mut vec: LocalStorageVec<_, 10> = LocalStorageVec::from([0, 1, 2, 3]);
@@ -533,7 +510,6 @@ mod tests {
         assert_eq!(vec.len(), 0);
     }
 
-    // Uncomment me for part E
     #[test]
     fn it_iters() {
         let vec: LocalStorageVec<_, 128> = LocalStorageVec::from([0; 32]);
@@ -561,7 +537,6 @@ mod tests {
         }
     }
 
-    // Uncomment me for part F
     #[test]
     fn it_indexes() {
         let vec: LocalStorageVec<i32, 10> = LocalStorageVec::from([0, 1, 2, 3, 4, 5]);
@@ -600,7 +575,6 @@ mod tests {
         assert!(should_panic_heap.is_err());
     }
 
-    // Uncomment me for part H
     #[test]
     fn it_borrowing_iters() {
         let vec: LocalStorageVec<String, 10> = LocalStorageVec::from([
@@ -617,7 +591,6 @@ mod tests {
         drop(vec);
     }
 
-    // Uncomment me for part J
     #[test]
     fn it_derefs() {
         use std::ops::{Deref, DerefMut};
@@ -625,7 +598,6 @@ mod tests {
         // `chunks` is a method that's defined for slices `[T]`, that we can use thanks to `Deref`
         let _chunks = vec.chunks(4);
         let _slice: &[_] = vec.deref();
-
         let mut vec: LocalStorageVec<_, 128> = LocalStorageVec::from([0; 128]);
         let _chunks = vec.chunks_mut(4);
         let _slice: &mut [_] = vec.deref_mut();
