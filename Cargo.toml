@@ -1,6 +1,8 @@
 [workspace]
 members = [
-    "crates/crossbeam_playground"
+    "crates/crossbeam_playground",
+    "crates/learn-rs/config_reader",
+    "crates/learn-rs/local_storage_vec"
 ]
 
 [package]
