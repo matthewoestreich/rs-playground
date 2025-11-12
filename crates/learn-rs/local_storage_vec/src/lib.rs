@@ -1,33 +1,27 @@
+#![allow(clippy::new_without_default)]
+#![allow(clippy::len_without_is_empty)]
+
 //
 //
 //
 // Exeercise  : https://teach-rs.trifectatech.org/exercises/2-foundations-of-rust/4-traits-and-generics/index.html
 // GitHub     : https://github.com/trifectatechfoundation/teach-rs
-// Run tests  : `cargo test test_local_storage_vec`
+// Run tests  : [from project root] : `cargo test -p local_storage_vec`
 //
 //
 //
-#![allow(clippy::new_without_default)]
-#![allow(clippy::len_without_is_empty)]
 
 use std::{
     fmt::Debug,
     ops::{Deref, DerefMut, Index, Range, RangeFrom, RangeTo},
 };
 
-fn main() {
-    let mut x = 100;
-    let y = &mut x;
-    *y += 100;
-    let z = &mut x;
-    *z += 1000;
-    assert_eq!(x, 1200);
-}
-
 pub enum LocalStorageVec<T, const N: usize> {
     Heap(Vec<T>),
     Stack { buf: [T; N], len: usize },
 }
+
+/********************** LocalStorageVec Impl *************************************/
 
 impl<T, const N: usize> LocalStorageVec<T, N>
 where
@@ -86,14 +80,12 @@ where
                     panic!("[remove] index > *len");
                 }
                 if index == *len {
-                    return self.pop().unwrap();
+                    return self.pop().expect("remove : element to exist");
                 }
-                let el = buf[index];
-                for i in index..*len {
-                    buf[i] = buf[i + 1];
-                }
+                let removed = buf[index];
+                buf.copy_within(index + 1..*len, index);
                 *len -= 1;
-                el.to_owned()
+                removed
             }
         }
     }
@@ -132,6 +124,8 @@ where
     }
 }
 
+/********************** LocalStorageVec Borrow Iter Impl *************************/
+
 impl<'a, T, const N: usize> LocalStorageVec<T, N> {
     pub fn iter(&'a self) -> LocalStorageVecBorrowIter<'a, T, N> {
         match self {
@@ -146,6 +140,8 @@ impl<'a, T, const N: usize> LocalStorageVec<T, N> {
         }
     }
 }
+
+/********************** LocalStorageVec From<[T; N]> Impl ************************/
 
 impl<T, const N: usize, const M: usize> From<[T; N]> for LocalStorageVec<T, M>
 where
@@ -164,11 +160,15 @@ where
     }
 }
 
+/********************** LocalStorageVec From<Vec<T>> Impl ************************/
+
 impl<T, const N: usize> From<Vec<T>> for LocalStorageVec<T, N> {
     fn from(value: Vec<T>) -> Self {
         Self::Heap(value)
     }
 }
+
+/********************** LocalStorageVec AsRef Impl ********************************/
 
 impl<T, const N: usize> AsRef<[T]> for LocalStorageVec<T, N> {
     fn as_ref(&self) -> &[T] {
@@ -179,6 +179,8 @@ impl<T, const N: usize> AsRef<[T]> for LocalStorageVec<T, N> {
     }
 }
 
+/********************** LocalStorageVec AsMut Impl *******************************/
+
 impl<T, const N: usize> AsMut<[T]> for LocalStorageVec<T, N> {
     fn as_mut(&mut self) -> &mut [T] {
         match self {
@@ -187,6 +189,8 @@ impl<T, const N: usize> AsMut<[T]> for LocalStorageVec<T, N> {
         }
     }
 }
+
+/********************** LocalStorageVec Index<usize> Impl ************************/
 
 impl<T, const N: usize> Index<usize> for LocalStorageVec<T, N> {
     type Output = T;
@@ -198,6 +202,8 @@ impl<T, const N: usize> Index<usize> for LocalStorageVec<T, N> {
         }
     }
 }
+
+/********************** LocalStorageVec Index<RangeTo<>> Impl ********************/
 
 impl<T, const N: usize> Index<RangeTo<usize>> for LocalStorageVec<T, N> {
     type Output = [T];
@@ -213,6 +219,8 @@ impl<T, const N: usize> Index<RangeTo<usize>> for LocalStorageVec<T, N> {
     }
 }
 
+/********************** LocalStorageVec Index<RangeFrom<> Impl *******************/
+
 impl<T, const N: usize> Index<RangeFrom<usize>> for LocalStorageVec<T, N> {
     type Output = [T];
 
@@ -224,6 +232,8 @@ impl<T, const N: usize> Index<RangeFrom<usize>> for LocalStorageVec<T, N> {
     }
 }
 
+/********************** LocalStorageVec Index<Range> Impl ************************/
+
 impl<T, const N: usize> Index<Range<usize>> for LocalStorageVec<T, N> {
     type Output = [T];
 
@@ -234,6 +244,53 @@ impl<T, const N: usize> Index<Range<usize>> for LocalStorageVec<T, N> {
         }
     }
 }
+
+/********************** LocalStorageVec IntoIterator Impl ************************/
+
+impl<T, const N: usize> IntoIterator for LocalStorageVec<T, N>
+where
+    T: Default,
+{
+    type Item = T;
+    type IntoIter = LocalStorageVecIter<T, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        LocalStorageVecIter {
+            vec: self,
+            counter: 0,
+        }
+    }
+}
+
+/********************** LocalStorageVec Deref Impl *******************************/
+
+impl<T, const N: usize> Deref for LocalStorageVec<T, N> {
+    type Target = [T];
+
+    fn deref(&self) -> &Self::Target {
+        match self {
+            LocalStorageVec::Heap(vec) => vec.as_slice(),
+            LocalStorageVec::Stack { buf, len } => &buf[..*len],
+        }
+    }
+}
+
+/********************** LocalStorageVec DerefMut Impl ****************************/
+
+impl<T, const N: usize> DerefMut for LocalStorageVec<T, N> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        match self {
+            LocalStorageVec::Heap(vec) => vec.as_mut_slice(),
+            LocalStorageVec::Stack { buf, len } => &mut buf[..*len],
+        }
+    }
+}
+
+/*-------------------------------------------------------------------------------*/
+/*                                 Structs                                       */
+/*-------------------------------------------------------------------------------*/
+
+/********************** LocalStorageVecBorrowIter ********************************/
 
 pub struct LocalStorageVecBorrowIter<'a, T, const N: usize> {
     slice: &'a [T],
@@ -253,6 +310,8 @@ impl<'a, T, const N: usize> Iterator for LocalStorageVecBorrowIter<'a, T, N> {
         }
     }
 }
+
+/********************** LocalStorageVecIter **************************************/
 
 pub struct LocalStorageVecIter<T, const N: usize> {
     vec: LocalStorageVec<T, N>,
@@ -288,43 +347,8 @@ where
     }
 }
 
-impl<T, const N: usize> IntoIterator for LocalStorageVec<T, N>
-where
-    T: Default,
-{
-    type Item = T;
-    type IntoIter = LocalStorageVecIter<T, N>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        LocalStorageVecIter {
-            vec: self,
-            counter: 0,
-        }
-    }
-}
-
-impl<T, const N: usize> Deref for LocalStorageVec<T, N> {
-    type Target = [T];
-
-    fn deref(&self) -> &Self::Target {
-        match self {
-            LocalStorageVec::Heap(vec) => vec.as_slice(),
-            LocalStorageVec::Stack { buf, len } => &buf[..*len],
-        }
-    }
-}
-
-impl<T, const N: usize> DerefMut for LocalStorageVec<T, N> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        match self {
-            LocalStorageVec::Heap(vec) => vec.as_mut_slice(),
-            LocalStorageVec::Stack { buf, len } => &mut buf[..*len],
-        }
-    }
-}
-
 #[cfg(test)]
-mod test_local_storage_vec {
+mod tests {
     use crate::LocalStorageVec;
 
     #[test]
