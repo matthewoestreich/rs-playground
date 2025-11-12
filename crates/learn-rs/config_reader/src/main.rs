@@ -25,8 +25,8 @@ fn main() {
     };
 
     #[allow(clippy::diverging_sub_expression)]
-    let config: Config = todo!("Deserialize `file_contents` using either serde_yaml or serde_json depending on the file extension. Use dynamic dispatch");
-    println!("Config was: {config:?}");
+    let _config: Config = todo!("Deserialize `file_contents` using either serde_yaml or serde_json depending on the file extension. Use dynamic dispatch");
+    //println!("Config was: {_config:?}");
 }
 
 /// An imaginary config file
@@ -47,7 +47,7 @@ pub enum Error {
     Yaml(serde_yaml::Error),
 }
 
-trait DeserializeConfig {
+trait _DeserializeConfig {
     /// Deserialize the contents into a `Config`
     fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error>;
 }
