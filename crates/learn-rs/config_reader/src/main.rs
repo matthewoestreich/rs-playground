@@ -10,8 +10,8 @@ fn main() {
         return;
     };
     // Unwrapping is Ok as `path` was created from UTF-8 string, and so is the extension
-    let _extension = path.extension().map(|o| o.to_str().unwrap());
-    let _file_contents = match std::fs::read_to_string(&path) {
+    let extension = path.extension().map(|o| o.to_str().unwrap());
+    let file_contents = match std::fs::read_to_string(&path) {
         Ok(c) => c,
         Err(e) => {
             // `path` was created from an UTF-8 string, so can be converted to one
@@ -24,9 +24,20 @@ fn main() {
         }
     };
 
-    #[allow(clippy::diverging_sub_expression)]
-    let _config: Config = todo!("Deserialize `file_contents` using either serde_yaml or serde_json depending on the file extension. Use dynamic dispatch");
-    //println!("Config was: {_config:?}");
+    let config: Config = if extension.unwrap() == "json" {
+        deserialize_config(&JsonDeserializer::new(), &file_contents).unwrap()
+    } else {
+        deserialize_config(&YmlDeserializer::new(), &file_contents).unwrap()
+    };
+
+    println!("Config was: {config:?}");
+}
+
+fn deserialize_config<'a>(
+    deserializer: &dyn ConfigDeserializer,
+    contents: &'a str,
+) -> Result<Config<'a>, Error> {
+    deserializer.deserialize(contents)
 }
 
 /// An imaginary config file
@@ -47,9 +58,43 @@ pub enum Error {
     Yaml(serde_yaml::Error),
 }
 
-trait _DeserializeConfig {
+// Had to rename this bc I didn't like the original name..
+// Original name = `DeserializeConfig`
+trait ConfigDeserializer {
     /// Deserialize the contents into a `Config`
     fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error>;
 }
 
-// TODO add some types that implement `DeserializeConfig`
+struct JsonDeserializer {}
+
+impl JsonDeserializer {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
+impl ConfigDeserializer for JsonDeserializer {
+    fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error> {
+        match serde_json::from_str(contents) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(Error::Json(e)),
+        }
+    }
+}
+
+struct YmlDeserializer {}
+
+impl YmlDeserializer {
+    fn new() -> Self {
+        Self {}
+    }
+}
+
+impl ConfigDeserializer for YmlDeserializer {
+    fn deserialize<'a>(&self, contents: &'a str) -> Result<Config<'a>, Error> {
+        match serde_yaml::from_str(contents) {
+            Ok(result) => Ok(result),
+            Err(e) => Err(Error::Yaml(e)),
+        }
+    }
+}
