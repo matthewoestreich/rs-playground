@@ -335,7 +335,6 @@ where
             }
             LocalStorageVec::Stack { buf, len } => {
                 if self.counter < *len {
-                    self.counter += 1;
                     let r = Some(std::mem::take(&mut buf[self.counter]));
                     self.counter += 1;
                     return r;
@@ -545,6 +544,16 @@ mod tests {
             assert_eq!(item, 0);
         }
         assert_eq!(iter.next(), None);
+
+        let mut v = LocalStorageVec::<i32, 10>::new();
+        let mut v_clone = LocalStorageVec::<i32, 10>::new();
+        for i in 0..5 {
+            v.push(i);
+            v_clone.push(i);
+        }
+        for (i, item) in v.into_iter().enumerate() {
+            assert_eq!(item, v_clone[i]);
+        }
     }
 
     // Uncomment me for part F
