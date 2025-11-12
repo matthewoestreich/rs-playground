@@ -4,6 +4,8 @@
 
 ## At a High Level
 
-Create an array-like data structure that resides on the stack if the size of array is under some specified bound, or on the heap if the size of the array is above some specified bound.
+Create a hybrid, array-like data structure that stores elements **on the stack** when the size is below a specified bound, and automatically transitions to **heap storage** when that bound is exceeded.
 
-If the array is on the stack and it's size surpasses the bound, it should be automatically moved to the heap.
+When the array grows beyond the stack capacity, its contents are transparently moved to the heap.
+
+**This behavior should be completely opaque to the caller.**
