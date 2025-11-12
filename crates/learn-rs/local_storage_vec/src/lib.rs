@@ -34,7 +34,6 @@ where
         }
     }
 
-    // len, push, pop, insert, remove and clear:
     pub fn len(&self) -> usize {
         match self {
             LocalStorageVec::Heap(items) => items.len(),
