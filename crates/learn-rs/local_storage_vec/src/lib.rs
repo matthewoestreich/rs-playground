@@ -64,9 +64,9 @@ where
                     return None;
                 }
                 *len -= 1;
-                let p = buf[*len];
+                let popped = buf[*len];
                 buf[*len] = T::default();
-                Some(p)
+                Some(popped)
             }
         }
     }
