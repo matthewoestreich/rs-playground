@@ -76,7 +76,7 @@ where
             LocalStorageVec::Heap(items) => items.remove(index),
             LocalStorageVec::Stack { buf, len } => {
                 if index > *len {
-                    panic!("[remove] index > *len");
+                    panic!("index out of bounds: len={} but index={}", len, index);
                 }
                 if index == *len {
                     return self.pop().expect("remove : element to exist");
@@ -97,7 +97,7 @@ where
             LocalStorageVec::Heap(items) => items.insert(index, item),
             LocalStorageVec::Stack { buf, len } => {
                 if index >= N {
-                    panic!("index out of bounds! max index is {} got : {index}", N - 1);
+                    panic!("index out of bounds: len={} but index={}", N, index);
                 }
                 if *len >= N {
                     let mut v = Vec::from(*buf);
@@ -197,7 +197,12 @@ impl<T, const N: usize> Index<usize> for LocalStorageVec<T, N> {
     fn index(&self, index: usize) -> &Self::Output {
         match self {
             LocalStorageVec::Heap(items) => &items[index],
-            LocalStorageVec::Stack { buf, .. } => &buf[index],
+            LocalStorageVec::Stack { buf, len } => {
+                if index >= *len {
+                    panic!("index out of bounds: len={} but index={}", len, index);
+                }
+                &buf[index]
+            }
         }
     }
 }
@@ -565,6 +570,34 @@ mod tests {
         assert_eq!(vec[..10], [0, 1, 2, 3, 4, 5]);
         assert_eq!(vec[4..], [4, 5]);
         assert_eq!(vec[1..3], [1, 2]);
+    }
+
+    #[test]
+    fn it_indexes_panics() {
+        //----------------- Stack based -------------------
+        let mut vec_stack = LocalStorageVec::<usize, 10>::new();
+        for i in 0..3 {
+            vec_stack.push(i);
+        }
+        assert!(matches!(vec_stack, LocalStorageVec::Stack { .. }));
+        assert_eq!(vec_stack[2], 2);
+        let should_panic_stack = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = vec_stack[8];
+        }));
+        assert!(should_panic_stack.is_err());
+
+        //----------------- Heap based ----------0---------
+        let mut v = Vec::new();
+        for i in 0..3 {
+            v.push(i);
+        }
+        let vec_heap = LocalStorageVec::<i32, 10>::from(v);
+        assert!(matches!(vec_heap, LocalStorageVec::Heap { .. }));
+        assert_eq!(vec_heap[2], 2);
+        let should_panic_heap = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = vec_heap[8];
+        }));
+        assert!(should_panic_heap.is_err());
     }
 
     // Uncomment me for part H
