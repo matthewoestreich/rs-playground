@@ -1,0 +1,10 @@
+[package]
+name = "local_storage_vec"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+[[bin]]
+name = "local_storage_vec"
+path = "src/main.rs"

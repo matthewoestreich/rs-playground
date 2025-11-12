@@ -1,0 +1,12 @@
+[workspace]
+members = [
+  "crates/config_reader",
+  "crates/local_storage_vec",
+]
+
+[package]
+name = "learn-rs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
