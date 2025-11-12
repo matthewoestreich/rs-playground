@@ -10,7 +10,12 @@ fn main() {
         return;
     };
     // Unwrapping is Ok as `path` was created from UTF-8 string, and so is the extension
-    let extension = path.extension().map(|o| o.to_str().unwrap());
+    let extension = if let Some(ext) = path.extension().map(|o| o.to_str().unwrap()) {
+        Some(ext)
+    } else {
+        eprintln!("File has no extension!");
+        return;
+    };
     let file_contents = match std::fs::read_to_string(&path) {
         Ok(c) => c,
         Err(e) => {
@@ -24,13 +29,19 @@ fn main() {
         }
     };
 
-    let config: Config = if extension.unwrap() == "json" {
-        deserialize_config(&JsonDeserializer::new(), &file_contents).unwrap()
-    } else {
-        deserialize_config(&YmlDeserializer::new(), &file_contents).unwrap()
+    let result = match extension {
+        Some("yml" | "yaml") => deserialize_config(&YmlDeserializer::new(), &file_contents),
+        Some("json") => deserialize_config(&JsonDeserializer::new(), &file_contents),
+        _ => {
+            eprintln!("Unsupported file extension : {extension:?}");
+            return;
+        }
     };
 
-    println!("Config was: {config:?}");
+    match result {
+        Ok(config) => println!("\nParsed config is:\n\n{config:#?}\n"),
+        Err(e) => eprintln!("Unable to parse config! : {e:?}"),
+    }
 }
 
 fn deserialize_config<'a>(
