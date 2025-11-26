@@ -1,8 +1,9 @@
 [workspace]
-members = [
+members = ["crates/crossbeam_deque_playground",
     "crates/crossbeam_playground",
     "crates/learn-rs/config_reader",
-    "crates/learn-rs/local_storage_vec"
+    "crates/learn-rs/local_storage_vec", 
+    "crates/rayon"
 ]
 
 [package]
